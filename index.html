@@ -50,21 +50,63 @@ input{flex:1;height:46px;border:1px solid #ddd;border-radius:10px;padding:0 12px
 const RATE=0.002,salesArea=document.getElementById("salesArea");let mode='limit';
 function updateLabels(){document.querySelectorAll('.row').forEach((r,i)=>r.querySelector('.label').textContent=i+1)}
 function clearReady(){document.querySelectorAll('.del').forEach(b=>b.classList.remove('ready'));document.querySelectorAll('.tip').forEach(t=>t.classList.remove('show'))}
-function addRow(v=''){const row=document.createElement('div');row.className='row';row.innerHTML='<div class="label"></div><input class="salesInput" inputmode="text" value="'+v+'"><button class="del">🗑️</button>';const tip=document.createElement('div');tip.className='tip';tip.textContent='한 번 더 Backspace를 누르거나 휴지통을 누르면 삭제됩니다.';salesArea.append(row,tip);const input=row.querySelector('input'),del=row.querySelector('.del');let armed=false;
-input.addEventListener('input',e=>{armed=false;clearReady();fmt(e)});
-input.addEventListener('blur',()=>setTimeout(clearReady,150));
-input.addEventListener('keydown',e=>{const rows=[...document.querySelectorAll('.salesInput')];
-if(e.key==='Enter'&&rows.at(-1)===input){e.preventDefault();addRow();const n=document.querySelectorAll('.salesInput').at(-1);setTimeout(()=>{n.focus();},20);return;}
-if(e.key==='Backspace'&&input.value===''){e.preventDefault();if(!armed){clearReady();armed=true;del.classList.add('ready');tip.classList.add('show');return;}
-const idx=rows.indexOf(input);const prev=rows[idx-1];tip.remove();row.remove();updateLabels();calc();if(prev)setTimeout(()=>prev.focus(),20);}
-});
-del.onclick=()=>{const rows=[...document.querySelectorAll('.salesInput')];if(rows.length===1){input.value='';calc();return;}const idx=rows.indexOf(input);const prev=rows[idx-1];tip.remove();row.remove();updateLabels();calc();if(prev)prev.focus()}
-salesArea.appendChild(document.createComment(''));updateLabels();calc();}
+
+function addRow(v=''){
+  const row=document.createElement('div');
+  row.className='row';
+  row.innerHTML='<div class="label"></div><input class="salesInput" inputmode="text" value="'+v+'"><button class="del">🗑️</button>';
+  const tip=document.createElement('div');
+  tip.className='tip';
+  tip.textContent='한 번 더 Backspace를 누르거나 휴지통을 누르면 삭제됩니다.';
+  salesArea.append(row,tip);
+  
+  const input=row.querySelector('input'),del=row.querySelector('.del');
+  let armed=false;
+  
+  input.addEventListener('input',e=>{armed=false;clearReady();fmt(e)});
+  input.addEventListener('blur',()=>setTimeout(clearReady,150));
+  input.addEventListener('keydown',e=>{
+    const rows=[...document.querySelectorAll('.salesInput')];
+    if(e.key==='Enter'&&rows.at(-1)===input){
+      e.preventDefault();
+      
+      // 기존 인풋의 포커스를 먼저 풀어서 이탈시킵니다.
+      input.blur(); 
+      
+      // 새 행을 추가합니다.
+      addRow(); 
+      
+      // 브라우저가 새 행의 DOM 생성을 마친 직후 확실하게 포커스를 넘겨줍니다.
+      Promise.resolve().then(() => {
+        const newInputs = document.querySelectorAll('.salesInput');
+        const nextInput = newInputs[newInputs.length - 1];
+        if(nextInput) {
+          nextInput.focus();
+          nextInput.click();
+        }
+      });
+      return;
+    }
+    if(e.key==='Backspace'&&input.value===''){
+      e.preventDefault();
+      if(!armed){clearReady();armed=true;del.classList.add('ready');tip.classList.add('show');return;}
+      const idx=rows.indexOf(input);const prev=rows[idx-1];tip.remove();row.remove();updateLabels();calc();
+      if(prev){ prev.focus(); prev.click(); }
+    }
+  });
+  del.onclick=()=>{
+    const rows=[...document.querySelectorAll('.salesInput')];
+    if(rows.length===1){input.value='';calc();return;}
+    const idx=rows.indexOf(input);const prev=rows[idx-1];tip.remove();row.remove();updateLabels();calc();
+    if(prev){ prev.focus(); prev.click(); }
+  }
+  salesArea.appendChild(document.createComment(''));updateLabels();calc();
+}
 
 function fmt(e){
   let cursor = e.target.selectionStart;
   let oldLen = e.target.value.length;
-  let v = e.target.value.replace(/[^0-9-]/g,''); // 숫자와 마이너스 부호만 허용
+  let v = e.target.value.replace(/[^0-9-]/g,''); 
   if(v === '-') { e.target.value = '-'; return; }
   if(v && !isNaN(v)) {
     e.target.value = Number(v).toLocaleString();
@@ -95,19 +137,16 @@ function calc(){
     value.innerText=r.toFixed(4)+'%';
     
     if (l < 0) {
-      // 역로스 (재고 과잉 / 플러스 차이)
       value.className = "big text-blue";
       status.innerHTML='<div class="badge blue">🔵 역로스(과잉)</div>';
       extra.innerHTML='허용 차이금액 : ' + Math.round(m).toLocaleString() + '원<br>' +
                       '역로스 금액 : <span class="text-blue">' + Math.abs(l).toLocaleString() + '원</span>';
     } else if (l <= m) {
-      // 정상 범위 내의 로스
       value.className = "big text-blue";
       status.innerHTML='<div class="badge green">🟢 정상 범위</div>';
       extra.innerHTML='허용 차이금액 : ' + Math.round(m).toLocaleString() + '원<br>' +
                       '실제 차이금액 : <span class="text-blue">' + Math.round(l).toLocaleString() + '원</span>';
     } else {
-      // 허용 기준 초과 로스
       value.className = "big text-red";
       status.innerHTML='<div class="badge red">🔴 기준 초과</div>';
       const e = l - m;
