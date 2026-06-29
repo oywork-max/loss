@@ -38,20 +38,34 @@ input{flex:1;height:46px;border:1px solid #ddd;border-radius:10px;padding:0 12px
 .text-red{color:#ff6b6b;font-weight:bold}
 .text-blue{color:#1e88e5;font-weight:bold}
 
-/* 추가된 버튼 스타일 */
 .btn-group{display:flex;gap:10px;margin-top:15px}
 .btn-pdf{background:#333}
 .btn-email{background:#4a90e2}
-.print-header{display:none}
+.print-header { display:none }
 
-/* 🖨️ PDF 인쇄 및 저장용 전용 CSS 설정 */
+/* 🖨️ PDF 인쇄 및 저장용 전용 CSS 수정 완료 */
 @media print {
   body { background:#fff; padding:0 }
-  .no-print, .segment, .btn, .reset, .del, input, h2 { display:none!important }
+  /* 버튼, 팁, 선택 세그먼트 등 불필요한 요소만 숨김 */
+  .no-print, .segment, .btn, .reset, .del, .tip, h1.no-print { display:none!important }
   .card { box-shadow:none; padding:10px 0; border-bottom:1px dashed #ccc; border-radius:0 }
   .print-header { display:block; text-align:center; margin-bottom:20px; border-bottom:2px solid #333; padding-bottom:10px }
   .result { border-bottom:1px solid #eee }
   .badge { border:1px solid currentColor; background:none!important; padding:4px 8px }
+  
+  /* 매출 입력창과 실제 차이금액 입력창을 텍스트처럼 출력 */
+  input { 
+    border:none!important; 
+    background:transparent!important; 
+    padding:0!important; 
+    height:auto!important; 
+    font-size:16px!important; 
+    color:#000!important;
+    text-align:right; /* 금액을 더 보기 편하게 우측 정렬 */
+    pointer-events:none;
+  }
+  .row { margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:4px; }
+  h2 { font-size:16px; margin-bottom:8px; color:#333; display:block!important; }
 }
 </style>
 </head>
@@ -179,14 +193,12 @@ function calc(){
   }
 }
 
-// 📄 PDF 저장 스크립트
 function saveAsPDF(){
   const now = new Date();
   document.getElementById('printDate').innerText = now.toLocaleString();
   window.print();
 }
 
-// ✉️ 메일 발송 스크립트
 function sendEmail(){
   const s = total();
   const l = Number((lossAmount.value||'0').replace(/,/g,''));
@@ -215,8 +227,6 @@ function sendEmail(){
   }
   
   body += `\n-----------------------------\n본 메일은 로스율 계산기에서 내보내진 결과입니다.`;
-  
-  // 메일 클라이언트 규격에 맞게 인코딩 변환하여 실행
   window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
