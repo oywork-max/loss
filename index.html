@@ -75,7 +75,7 @@ input{flex:1;height:46px;border:1px solid #ddd;border-radius:10px;padding:0 12px
   <p style="text-align:right; color:#666; font-size:12px; margin-top:5px;">출력일시: <span id="printDate"></span></p>
 </div>
 
-<div class="card no-print"><div class="segment"><button id="limitBtn" class="active">허용 금액</button><button id="rateBtn">ロ스율 계산</button></div></div>
+<div class="card no-print"><div class="segment"><button id="limitBtn" class="active">허용 금액</button><button id="rateBtn">로스율 계산</button></div></div>
 <div class="card"><h2>기간 매출</h2><div id="salesArea"></div><button class="btn no-print" onclick="addRow()">+ 행 추가</button><button class="btn reset no-print" onclick="resetAll()">초기화</button></div>
 <div class="card"><div id="limitArea"><h2>허용 기준</h2><div class="fixed">0.2% (고정)</div></div><div id="rateArea" class="hidden"><h2>실제 차이금액</h2><input id="lossAmount" inputmode="text" placeholder="마이너스(-) 입력 가능"></div></div>
 <div class="card"><h2>📈 결과</h2><div class="result"><span>총 매출</span><span id="totalSales">0원</span></div><div class="result"><span id="title">허용 차이금액</span><span id="value" class="big">0원</span></div><div id="status"></div><div id="extra" class="info"></div>
